@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const userRoutes = require('./api/routes/userRoutes');
 const lockerRoutes = require('./api/routes/lockerRoutes');
-const authenticationRoutes = require('./api/routes/authenticationRoutes');
+const authenticationRoutes = require('./api/routes/authRoutes');
 const dotenv = require('dotenv');
 
 dotenv.config();
