@@ -12,7 +12,7 @@ export const login = async (req, res) => {
         const userId = 20 // fixed value
         //token
         // console.log(process.env.TOKEN_SECERT);
-        const token = jwt.sign({id: userId},process.env.TOKEN_SECERT);
+        const token = jwt.sign({id: userId},process.env.TOKEN_SECRET);
         
         
         // res.status(200).json({ token: token, userId: userId });
