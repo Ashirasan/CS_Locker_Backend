@@ -5,7 +5,7 @@ export const getAllUsers = async (req, res) => {
     const query = 'SELECT * FROM users';
     mysql.query(query, (err, result) => {
       if (err) {
-        res.status(400).json({ message: err.message });
+        // res.status(400).json({ message: err.message });
       }
       res.status(200).json(result);
     });
