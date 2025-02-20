@@ -17,7 +17,7 @@ export const getLockerById = async (req, res) => {
     try {
         req.params.id;
         const query = `SELECT * FROM lockers WHERE locker_id = ${req.params.id}`;
-        await mysql.query(query, (err,result) => {
+        await mysql.query(query, (err, result) => {
             if (err) {
                 res.status(400).json({ message: err.message });
             }
@@ -28,12 +28,28 @@ export const getLockerById = async (req, res) => {
     }
 }
 
+// get locker reservation by user
+export const getRsvLocker = async (req, res) => {
+    try {
+        const user_id = req.body.user_id;
+        const query = `SELECT * FROM reservations WHERE user_id = ${user_id}`;
+        await mysql.query(query, (err,result) => {
+            if (err) {
+                res.status(400).json({ message: err.message });
+            }
+            res.status(200).json(result);
+        })
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+}
+
 export const createLocker = async (req, res) => {
     try {
         const locker_status = 1; // online
 
         const insert = `INSERT INTO lockers (locker_status) VALUES ('${locker_status}')`;
-        await mysql.query(insert, (err, result)=>{
+        await mysql.query(insert, (err, result) => {
             if (err) {
                 res.status(400).json({ message: err.message });
             }
@@ -62,7 +78,7 @@ export const updateStatusLocker = async (req, res) => {
 }
 
 export const reservationLocker = async (req, res) => {
-    try{
+    try {
         const locker_id = req.body.locker_id;
         const user_id = req.body.user_id;
         const password = Math.random().toString(10).slice(-6);
@@ -74,7 +90,7 @@ export const reservationLocker = async (req, res) => {
                 res.status(400).json({ message: "Locker already reserved" });
             }
         })
-        
+
         const insert = `INSERT INTO reservations (user_id, locker_id, password) values ('${user_id}', '${locker_id}', '${password}')`;
         await mysql.query(insert, (err, result) => {
             if (err) {
@@ -82,9 +98,27 @@ export const reservationLocker = async (req, res) => {
             }
             res.status(200).json({ message: "Reservation locker complete" });
         })
-        
 
-    }catch(error){
+
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+}
+
+
+
+// un reservation locker
+export const unreservationLocker = async (req, res) => {
+    try {
+        const rsv_id = req.body.rsv_id;
+        const deleteRsv = `DELETE FROM reservations WHERE rsv_id = ${rsv_id}`;
+        await mysql.query(deleteRsv, (err, result) => {
+            if (err) {
+                res.status(400).json({ message: err.message });
+            }
+            res.status(200).json({ message: "Unreservation locker complete" });
+        })
+    }catch (error) {
         res.status(404).json({ message: error.message });
     }
 }
