@@ -61,6 +61,13 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-    res.status(200).json({ message: "Logged out" });
+
+    try{
+        res.header('auth-token', '');
+        res.status(200).json({ message: "Logged out" });
+    }catch(error){
+        res.status(500).json({ message: error.message });
+    }
+    
 };
 

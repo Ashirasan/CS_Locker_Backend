@@ -30,6 +30,22 @@ export const getLockerById = async (req, res) => {
     }
 }
 
+// get locker reservation by user
+export const getRsvLocker = async (req, res) => {
+    try {
+        const user_id = req.body.user_id;
+        const query = `SELECT * FROM reservations WHERE user_id = ${user_id}`;
+        await mysql.query(query, (err,result) => {
+            if (err) {
+                res.status(400).json({ message: err.message });
+            }
+            res.status(200).json(result);
+        })
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+}
+
 export const createLocker = async (req, res) => {
     try {
         const locker_status = 1; // online
