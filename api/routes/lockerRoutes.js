@@ -7,4 +7,7 @@ router.get('/:id', lockerController.getLockerById);
 router.post('/createLocker', lockerController.createLocker);
 router.put('/updateLocker/:id', lockerController.updateStatusLocker);
 router.post('/reservetionLocker', lockerController.reservationLocker);
+router.post('/comparePassword', lockerController.comparePassword);
+
+
 module.exports = router;
