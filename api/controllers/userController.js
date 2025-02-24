@@ -1,4 +1,6 @@
 import mysql from '../../connect.js';
+// const mysql = require('../../connect.js');
+
 
 export const getUserAll = async (req, res) => {
   try {

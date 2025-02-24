@@ -1,6 +1,12 @@
 import axios from 'axios';
 import mysql from '../../connect.js'
 import bcrypt from 'bcrypt';
+import   crypto from 'crypto';
+
+
+const key = "6380e4be33ebdbc4fcb5c4cf85995daf36babab2a77c5d6abeef0ba05edae1da";    //32 bytes key   
+const iv =  "91e721877f1ef7ef21633d952aaa55e4";  //16 bytes iv
+
 export const getAllLockers = async (req, res) => {
     try {
         const query = `SELECT * FROM lockers`;
@@ -111,10 +117,39 @@ export const reservationLocker = async (req, res) => {
         const locker_id = req.body.locker_id;
         const locker_num = req.body.locker_num;
         const user_id = req.body.user_id;
-        // console.log(user_id);
-        // console.log(locker_id);
-        const password = Math.random().toString(10).slice(-6);
-        console.log(password);
+        const date = new Date();
+        
+        
+        const password = (Math.floor(100000 + Math.random() * 900000)).toString();
+
+        console.log("Original Password:", password);
+        
+        function encrypt(text, key, iv) {
+            const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+            let encrypted = cipher.update(text, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+            return {
+                iv: iv.toString('hex'),
+                encryptedData: encrypted,
+                key: key.toString('hex') 
+            };
+        }
+        
+        // Decrypt function
+        // function decrypt(encryptedData, key, iv) {
+        //     const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key, 'hex'), Buffer.from(iv, 'hex'));
+        //     let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+        //     decrypted += decipher.final('utf8');
+        //     return decrypted;
+        // }
+        
+        // Encrypt the password
+        const encrypted = encrypt(password, key, iv);
+        console.log("Encrypted Password:", encrypted.encryptedData);
+        console.log("IV:", encrypted.iv);
+        console.log("Key:", encrypted.key);
+        
+        
         const check = `SELECT * FROM reservations WHERE locker_id = '${locker_id}'`;
         await mysql.query(check, async (err, result) => {
             if (err) {
@@ -124,11 +159,11 @@ export const reservationLocker = async (req, res) => {
                 return res.status(400).json({ message: "Locker already reserved" });
             }
             else {  // not found locker reservation
-                const bcryptPassword = password; // plain text password
+                
                 // const bcryptPassword = await bcrypt.hash(password.toString(), parseInt(process.env.BYCRYPT_LOCKER_SECRET));
                 // console.log(bcryptPassword);
-                const insert = `INSERT INTO reservations (users_id, locker_id, password) VALUES (?, ?, ?)`;
-                await mysql.query(insert, [user_id, locker_id, bcryptPassword], async (err, result) => {
+                const insert = `INSERT INTO reservations (user_id, locker_id, password,date) VALUES (?, ?, ?, ?)`;
+                await mysql.query(insert, [user_id, locker_id, encrypted.encryptedData, date], async (err, result) => {
                     if (err) {
                         return res.status(400).json({ message: err.message });
                     }
@@ -194,37 +229,134 @@ export const cancelreservationLocker = async (req, res) => {
     }
 }
 
+// export const comparePassword = async (req, res) => {
+//     try {
+//         const input_password = req.body.input_password
+//         var count_star = 0,locker_num = "", password = "";
+//         console.log(input_password);
+        
+//         for (let i = 0; i < input_password.length; i++) {
+//             if (input_password[i] === "*") count_star++;
+//             else if (count_star === 1) locker_num += input_password[i];
+//             else if (count_star === 2) password += input_password[i];
+//         }
+
+//         console.log(locker_num);
+//         console.log(password);
+//         const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE locker_num = ${locker_num}`;
+//         await mysql.query(query, async (err, result) => {
+//             if(err){
+//                 res.status(400).json({ message: err.message });
+//             }
+//             if(result.length === 0){
+//                 res.status(404).json({ message: "Reservation on locker number " + locker_num + " not found not found" });
+//             }else{
+               
+//                 const passwordE = result[0]?.password?.toString('hex');
+//                 console.log(passwordE);
+                
+
+                
+
+               
+
+//                 const decrypted = decrypt(passwordE, key, iv);
+//                 console.log("Decrypted Password:", decrypted);
+
+//                 if(password === result[0].password){
+//                     res.status(200).json({ "index": locker_num, "unlock": 1 });
+//                 }else{
+//                     res.status(200).json({ "index": locker_num, "unlock": 0 });
+//                 }
+//             }
+//         })
+//     } catch (error) {
+//         res.status(404).json({ message: error.message });
+//     }
+// }
+
+
+
 export const comparePassword = async (req, res) => {
     try {
-        const input_password = req.body.input_password
-        var count_star = 0,locker_num = "", password = "";
-        console.log(input_password);
-        
+        const input_password = req.body.input_password;
+        let count_star = 0, locker_num = "", password = "";
+
+        console.log("Received input:", input_password);
+
         for (let i = 0; i < input_password.length; i++) {
             if (input_password[i] === "*") count_star++;
             else if (count_star === 1) locker_num += input_password[i];
             else if (count_star === 2) password += input_password[i];
         }
 
-        console.log(locker_num);
-        console.log(password);
-        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE locker_num = ${locker_num}`;
-        await mysql.query(query, async (err, result) => {
-            if(err){
-                res.status(400).json({ message: err.message });
+        console.log("Locker Number:", locker_num);
+        console.log("Input Password:", password);
+
+        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE locker_num = ?`;
+        
+        // Use Promises with MySQL
+        mysql.query(query, [locker_num], async (err, result) => {
+            if (err) {
+                return res.status(400).json({ message: err.message });
             }
-            if(result.length === 0){
-                res.status(404).json({ message: "Reservation on locker number " + locker_num + " not found not found" });
-            }else{
-                if(password === result[0].password){
-                    res.status(200).json({ "index": locker_num, "unlock": 1 });
-                }else{
-                    res.status(200).json({ "index": locker_num, "unlock": 0 });
+            if (result.length === 0) {
+                return res.status(404).json({ message: `Reservation on locker number ${locker_num} not found.` });
+            }
+
+            const passwordE = result[0]?.password; // Get encrypted password from DB
+
+            console.log("Encrypted Password from DB:", passwordE);
+
+            if (!passwordE) {
+                return res.status(400).json({ message: "Stored password is missing." });
+            }
+
+            // Retrieve Key & IV from the database (adjust if stored elsewhere)
+            // const key = result[0]?.encryption_key; // Must be 32 bytes (hex)
+            // const iv = result[0]?.encryption_iv;   // Must be 16 bytes (hex)
+
+            if (!key || !iv) {
+                return res.status(400).json({ message: "Encryption key or IV missing." });
+            }
+
+            console.log("Key (hex):", key);
+            console.log("IV (hex):", iv);
+
+            function decrypt(encryptedData, key, iv) {
+                try {
+                    const keyBuffer = Buffer.from(key, 'hex');
+                    const ivBuffer = Buffer.from(iv, 'hex');
+            
+                    if (keyBuffer.length !== 32 || ivBuffer.length !== 16) {
+                        throw new Error("Invalid key or IV length");
+                    }
+            
+                    const decipher = crypto.createDecipheriv('aes-256-cbc', keyBuffer, ivBuffer);
+                    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+                    decrypted += decipher.final('utf8');
+                    return decrypted;
+                } catch (error) {
+                    throw new Error("Decryption failed. Invalid data or key/IV mismatch.");
                 }
             }
-        })
-    } catch (error) {
-        res.status(404).json({ message: error.message });
-    }
-}
+            
+            
 
+            try {
+                const decryptedPassword = decrypt(passwordE, key, iv);
+                console.log("Decrypted Password:", decryptedPassword);
+
+                if (password === decryptedPassword) {
+                    return res.status(200).json({ "index": locker_num, "unlock": 1 });
+                } else {
+                    return res.status(200).json({ "index": locker_num, "unlock": 0 });
+                }
+            } catch (decryptionError) {
+                return res.status(500).json({ message: "Decryption failed. Invalid data or key/IV mismatch." });
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
