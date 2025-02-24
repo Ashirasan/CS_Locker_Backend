@@ -1,6 +1,6 @@
 import mysql from '../../connect.js';
 
-export const getAllUsers = async (req, res) => {
+export const getUserAll = async (req, res) => {
   try {
     const query = 'SELECT * FROM users';
     mysql.query(query, (err, result) => {
@@ -13,3 +13,13 @@ export const getAllUsers = async (req, res) => {
     res.status(404).json({ message: error.message });
   }
 }
+
+export const getUserById = async (req,res) => {
+  try{
+
+  }catch(error){
+    res.status(400).json({message: error.message})
+  }
+}
+
+

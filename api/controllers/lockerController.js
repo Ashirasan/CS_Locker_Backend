@@ -31,10 +31,10 @@ export const getLockerById = async (req, res) => {
 }
 
 // get locker reservation all
-export const getRsvLockerAll = async (req,res) =>{
+export const getRsvAll = async (req,res) =>{
     try{
         const query = `SELECT * FROM reservations`;
-        await mysql.query(query,(req,result) =>{
+        await mysql.query(query,(err,result) =>{
             if(err){
                 res.status(400).json({ message: err.message });
             }
@@ -46,16 +46,16 @@ export const getRsvLockerAll = async (req,res) =>{
 }
 
 // get locker reservation by user
-export const getRsvLockerUserID = async (req, res) => {
+export const getRsvByUserId = async (req, res) => {
     try {
-        const user_id = req.body.user_id;
-        const query = `SELECT * FROM reservations JOIN lockers ON reservation.locker_id = lockers.locker_id WHERE user_id = ${user_id}`;
-        await mysql.query(query, (err, result) => {
+        const user_id = req.params.user_id;
+        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE reservations.user_id = ?`;
+        await mysql.query(query, [user_id], (err, result) => {
             if (err) {
-                res.status(400).json({ message: err.message });
+                return res.status(400).json({ message: err.message });
             }
             res.status(200).json(result);
-        })
+        });
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
