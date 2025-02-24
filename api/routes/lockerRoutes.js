@@ -12,8 +12,8 @@ router.put('/updateLocker/:id', lockerController.updateStatusLocker);
 
 
 // reservetion 
-router.post('/getRsvLocker', lockerController.getRsvLocker);
-router.post('/getRsvLockerUserID,')
+router.get('/getRsvLockerAll',lockerController.getRsvLockerAll);
+router.post('/getRsvLockerUserID',lockerController.getRsvLockerUserID)
 router.post('/reservetionLocker', lockerController.reservationLocker);
 router.post('/cancelreservationLocker', lockerController.cancelreservationLocker);
 // board
