@@ -30,11 +30,26 @@ export const getLockerById = async (req, res) => {
     }
 }
 
+// get locker reservation all
+export const getRsvLockerAll = async (req,res) =>{
+    try{
+        const query = `SELECT * FROM reservations`;
+        await mysql.query(query,(req,result) =>{
+            if(err){
+                res.status(400).json({ message: err.message });
+            }
+            res.status(200).json(result);
+        })
+    }catch(error){
+        res.status(404).json({message: error.message})
+    }
+}
+
 // get locker reservation by user
-export const getRsvLocker = async (req, res) => {
+export const getRsvLockerUserID = async (req, res) => {
     try {
         const user_id = req.body.user_id;
-        const query = `SELECT * FROM reservations WHERE user_id = ${user_id}`;
+        const query = `SELECT * FROM reservations JOIN lockers ON reservation.locker_id = lockers.locker_id WHERE user_id = ${user_id}`;
         await mysql.query(query, (err, result) => {
             if (err) {
                 res.status(400).json({ message: err.message });
@@ -94,113 +109,122 @@ export const updateStatusLocker = async (req, res) => {
 export const reservationLocker = async (req, res) => {
     try {
         const locker_id = req.body.locker_id;
+        const locker_num = req.body.locker_num;
         const user_id = req.body.user_id;
+        // console.log(user_id);
+        // console.log(locker_id);
         const password = Math.random().toString(10).slice(-6);
         console.log(password);
         const check = `SELECT * FROM reservations WHERE locker_id = '${locker_id}'`;
         await mysql.query(check, async (err, result) => {
             if (err) {
-                res.status(400).json({ message: err.message });
+                return res.status(400).json({ message: err.message });
             }
             if (result.length > 0) {
-                res.status(400).json({ message: "Locker already reserved" });
-            } else {  // not found locker reservation
-
-                const bcryptPassword = req.body.password; // plain text password
+                return res.status(400).json({ message: "Locker already reserved" });
+            }
+            else {  // not found locker reservation
+                const bcryptPassword = password; // plain text password
                 // const bcryptPassword = await bcrypt.hash(password.toString(), parseInt(process.env.BYCRYPT_LOCKER_SECRET));
                 // console.log(bcryptPassword);
-                const insert = `INSERT INTO reservations (user_id, locker_id, password) values ('${user_id}', '${locker_id}', '${bcryptPassword}')`;
-                await mysql.query(insert, async (err, result) => {
+                const insert = `INSERT INTO reservations (users_id, locker_id, password) VALUES (?, ?, ?)`;
+                await mysql.query(insert, [user_id, locker_id, bcryptPassword], async (err, result) => {
                     if (err) {
-                        res.status(400).json({ message: err.message });
-                    } else {
-                        // mqtt
-                        const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Frsv', message, {
+                        return res.status(400).json({ message: err.message });
+                    }
+                    else {
+                        //mqtt
+                        const message_toboard = {
+                            "index": locker_num,
+                            "status": 1
+                        }
+                        const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Frsv', message_toboard, {
                             headers: {
                                 'Authorization': 'Device ' + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
-                                body: {
-                                    "data": {
-                                        "index": 1,
-                                        "unlock": true
-                                    }
-                                },
                             },
                         })
                         // res
                         res.status(200).json({ message: "Reservation locker complete" });
                     }
-
                 })
             }
         })
 
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const cancelreservationLocker = async (req, res) => {
+    try {
+        const rsv_id = req.body.rsv_id;
+        const locker_num = req.body.locker_num
+
+        const check = `SELECT * FROM reservations WHERE rsv_id = ${rsv_id}`;
+        await mysql.query(check, async (err, result) => {
+            if (err) {
+                res.status(400).json({ message: err.message });
+            }
+            if (result.length === 0) {
+                res.status(404).json({ message: "Reservation not found" });
+            } else {
+                const deleteQuery = `DELETE FROM reservations WHERE rsv_id = ${rsv_id}`;
+                await mysql.query(deleteQuery, async (err, result) => {
+                    if (err) {
+                        res.status(400).json({ message: err.message });
+                    }
+                    //mqtt
+                    const message_toboard = {
+                        "index": locker_num,
+                        "status": 0
+                    }
+                    const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Fcancelrsv', message_toboard, {
+                        headers: {
+                            "Authorization": "Device " + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
+                        },
+                    })
+                    //res
+                    res.status(200).json({ message: "Cancel reservation locker complete" });
+                });
+            }
+        })
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 }
-
 
 export const comparePassword = async (req, res) => {
     try {
-        const locker_num = req.body.locker_num;
-        const input_password = req.body.input_password;
+        const input_password = req.body.input_password
+        var count_star = 0,locker_num = "", password = "";
+        console.log(input_password);
+        
+        for (let i = 0; i < input_password.length; i++) {
+            if (input_password[i] === "*") count_star++;
+            else if (count_star === 1) locker_num += input_password[i];
+            else if (count_star === 2) password += input_password[i];
+        }
 
-        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE lockers.locker_num = '${locker_num}'`;
-
-        var query_password = '';
+        console.log(locker_num);
+        console.log(password);
+        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE locker_num = ${locker_num}`;
         await mysql.query(query, async (err, result) => {
-            if (err) {
+            if(err){
                 res.status(400).json({ message: err.message });
             }
-            if (result.length === 0) {
-                res.status(400).json({ message: "Locker not found" });
+            if(result.length === 0){
+                res.status(404).json({ message: "Reservation on locker number " + locker_num + " not found not found" });
+            }else{
+                if(password === result[0].password){
+                    res.status(200).json({ "index": locker_num, "unlock": 1 });
+                }else{
+                    res.status(200).json({ "index": locker_num, "unlock": 0 });
+                }
             }
-            query_password = result[0].password;
-            const checkPassword = await bcrypt.compare(input_password, query_password,);
-            console.log(checkPassword);
-
-            if (!checkPassword) {
-                res.status(400).json({ message: "Password not match" });
-            } else {
-                res.status(200).json({ message: "Password match" });
-            }
-
-        });
-        // const response = await axios.get('https://api.netpie.io/v2/device/shadow/data', {
-        //     headers: {
-        //         'Authorization': 'Device ' + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
-        //     },
-        //     body: {
-        //         "data": {
-        //             "index": locker_num,
-        //             "unlock": true
-        //         }
-
-        //     }
-        // })
-        // res.status(200).json({ message: "Password match" });
-
+        })
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 }
 
-
-export const lockerDecryptPassword = async (req, res) => {
-    try {
-        const locker_num = req.params.locker_num;
-        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE lockers.locker_num = '${locker_num}'`;
-        await mysql.query(query, async (err, result) => {
-            if (err) {
-                res.status(400).json({ message: err.message });
-            }
-            if (result.length === 0) {
-                res.status(400).json({ message: "Locker not found" });
-            }
-
-            res.status(200).json({ password: result[0].password });
-        });
-    } catch (error) {
-        res.status(404).json({ message: error.message });
-    }
-}
