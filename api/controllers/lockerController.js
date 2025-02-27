@@ -54,11 +54,21 @@ export const getRsvByUserId = async (req, res) => {
     try {
         const user_id = req.params.user_id;
         const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE reservations.user_id = ?`;
-        await mysql.query(query, [user_id], (err, result) => {
+        await mysql.query(query, [user_id], async (err, result) => {
             if (err) {
                 return res.status(400).json({ message: err.message });
             }
-            res.status(200).json(result);
+            if (result.length === 0) {
+                res.status(200).json(result);
+            } else {
+                let index = 0
+                for await (const element of result) {
+                    result[index].password = decrypt(element.password)
+                    index++;
+                }
+                res.status(200).json(result);
+            }
+
         });
     } catch (error) {
         res.status(404).json({ message: error.message });
@@ -250,6 +260,39 @@ export const comparePassword = async (req, res) => {
         })
     } catch (error) {
         res.status(404).json({ message: error.message });
+    }
+}
+
+export const unlockByApp = async (req, res) => {
+    try {
+        const rsv_id = req.body.rsv_id
+        const user_id = req.body.user_id
+        const query = `SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id WHERE rsv_id = ${rsv_id} AND user_id = ${user_id}`;
+        await mysql.query(query, async (err, result) => {
+            if (err) {
+                res.status(400).json({ message: err.message });
+            }
+            if (result.length === 0) {
+                res.status(404).json({ message: "reservation id = " + rsv_id + " not found" });
+            } else {
+                //mqtt
+                const message_toboard = {
+                    "index": result[0].locker_num,
+                    "unlock": 1
+                }
+                const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Funlock', message_toboard, {
+                    headers: {
+                        "Authorization": "Device " + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
+                    },
+                })
+                //res
+                res.status(200).json("locker number "+result[0].locker_num+ " unlock true")
+            }
+        })
+
+
+    } catch (error) {
+        res.status(400).json({ message: error.message })
     }
 }
 
