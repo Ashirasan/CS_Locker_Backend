@@ -4,8 +4,6 @@ import crypto from 'crypto'
 import dotenv from 'dotenv'
 dotenv.config()
 
-// const key = "6380e4be33ebdbc4fcb5c4cf85995daf36babab2a77c5d6abeef0ba05edae1da";    //32 bytes key   
-// const iv =  "91e721877f1ef7ef21633d952aaa55e4";  //16 bytes iv
 
 export const getAllLockers = async (req, res) => {
     try {
