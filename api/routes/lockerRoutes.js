@@ -20,5 +20,8 @@ router.post('/cancelreservationLocker', lockerController.cancelreservationLocker
 // board
 router.post('/comparePassword', lockerController.comparePassword);
 
+//unlockapp
+router.post('/unlockByApp', lockerController.unlockByApp);
+
 
 module.exports = router;
