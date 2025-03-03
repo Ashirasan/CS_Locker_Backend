@@ -47,4 +47,4 @@ jobs:
 
     - name: Trigger Portainer Webhook
       run: |
-        curl -X GET https://demos.wutthiphon.space/lab/ubuntu/portainer/api/stacks/webhooks/4f22c699-d13c-4667-bab0-e62b8075feb7
+        curl -X POST https://demos.wutthiphon.space/lab/ubuntu/portainer/api/stacks/webhooks/4f22c699-d13c-4667-bab0-e62b8075feb7
