@@ -10,6 +10,16 @@ services:
       - "101:8000"
     networks:
       - network
+    environment:
+      - BACKEND_PORT
+      - DATABASE_URL
+      - SECRET_KEY
+      - BCRYPT_ROUNDS
+      - CRYPTO_IV
+      - MQTT_HOST
+      - MQTT_CLIENT_ID
+      - MQTT_TOKEN
+      - MQTT_SECERT
 
 networks:
   network:
