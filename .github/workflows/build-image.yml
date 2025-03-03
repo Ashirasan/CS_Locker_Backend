@@ -43,7 +43,7 @@ jobs:
         git config user.email "github-actions@users.noreply.github.com"
         git add docker-compose.yml
         git commit -m "Update docker-compose.yml with new tag"
-        git push https://${{ secrets.GH_TOKEN }}@github.com/Ashirasan/CS_Locker_Backend.git HEAD:production
+        git push https://Wutthiphon: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@github.com/Ashirasan/CS_Locker_Backend.git HEAD:production
 
     - name: Trigger Portainer Webhook
       run: |
