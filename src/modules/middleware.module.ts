@@ -1,8 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 
+import dotenv from "dotenv";
 dotenv.config();
+
+export interface AuthUserInformation {}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUserInformation;
+    }
+  }
+}
 
 export class Middleware {
   verifyAuth = () => {
@@ -25,7 +35,7 @@ export class Middleware {
           });
         }
 
-        // req.user = user;
+        req.user = user as AuthUserInformation;
         next();
       });
     };
