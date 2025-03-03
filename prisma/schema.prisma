@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model lockers {
+  locker_id     Int            @id @default(autoincrement())
+  locker_num    Int
+  locker_status Int            @db.TinyInt
+  records       records[]
+  reservations  reservations[]
+}
+
+model records {
+  record_id  Int       @id @default(autoincrement())
+  date_start DateTime? @db.DateTime(0)
+  date_end   DateTime? @db.DateTime(0)
+  user_id    Int
+  locker_id  Int
+  lockers    lockers   @relation(fields: [locker_id], references: [locker_id], onDelete: Cascade, map: "record_locker_id")
+  users      users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "record_user_id")
+
+  @@index([locker_id], map: "record_locker_id")
+  @@index([user_id], map: "record_user_id")
+}
+
+model reservations {
+  rsv_id    Int      @id @default(autoincrement())
+  user_id   Int
+  locker_id Int
+  password  String   @db.VarChar(255)
+  date      DateTime @db.DateTime(0)
+  lockers   lockers  @relation(fields: [locker_id], references: [locker_id], onDelete: Cascade, map: "rsv_locker_id")
+  users     users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "rsv_user_id")
+
+  @@index([locker_id], map: "rsv_locker_id")
+  @@index([user_id], map: "rsv_user_id")
+}
+
+model users {
+  user_id      Int            @id @default(autoincrement())
+  username     String         @db.VarChar(255)
+  password     String         @db.VarChar(255)
+  name         String         @db.VarChar(255)
+  email        String         @db.VarChar(255)
+  records      records[]
+  reservations reservations[]
+}
