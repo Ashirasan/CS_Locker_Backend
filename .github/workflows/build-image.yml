@@ -11,13 +11,13 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
 
     - name: Cache Docker layers
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: /tmp/.buildx-cache
         key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -43,8 +43,8 @@ jobs:
         git config user.email "github-actions@users.noreply.github.com"
         git add docker-compose.yml
         git commit -m "Update docker-compose.yml with new tag"
-        git push
+        git push origin HEAD:production
 
     - name: Trigger Portainer Webhook
       run: |
-        curl -X POST https://demos.wutthiphon.space/lab/ubuntu/portainer/api/stacks/webhooks/1a3effa4-181f-4229-ad16-4b60af5b7573
+        curl -X POST https://demos.wutthiphon.space/lab/ubuntu/portainer/api/stacks/webhooks/4f22c699-d13c-4667-bab0-e62b8075feb7
