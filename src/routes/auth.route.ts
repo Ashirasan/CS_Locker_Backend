@@ -12,5 +12,9 @@ export class AuthRouteModule extends RouteModule {
     this.router.post("/user-login", (req, res) =>
       this.controller.userLogin(req, res)
     );
+
+    this.router.get("/protected", this.middleware.verifyAuth(), (req, res) =>
+      this.controller.protected(req, res)
+    );
   }
 }

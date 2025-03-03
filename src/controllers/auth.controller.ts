@@ -7,4 +7,8 @@ export class AuthController extends ControllerModule {
   }
 
   async userLogin(req: Request, res: Response) {}
+
+  async protected(req: Request, res: Response) {
+    res.send("Protected route");
+  }
 }
