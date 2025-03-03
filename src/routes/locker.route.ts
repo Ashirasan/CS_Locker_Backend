@@ -14,6 +14,9 @@ export class LockerRouteModule extends RouteModule {
         this.router.get("/get-locker", (req,res)=>
             this.controller.getLocker(req,res)
         );
+        this.router.get("/get-reservelocker/:user_id", (req,res)=>
+            this.controller.getReserveLocker(req,res)
+        );
 
         //unlock
         //by app

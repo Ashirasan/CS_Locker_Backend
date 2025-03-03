@@ -47,7 +47,8 @@ export class LockerController extends ControllerModule {
 
     async getLocker(req: Request, res: Response) {
         try {
-            const locker: any[] = await this.prisma.$queryRaw`SELECT * FROM lockers`;
+            const locker: any[] = await this.prisma.$queryRaw`SELECT * FROM lockers WHERE lockers.locker_id NOT IN (SELECT locker_id FROM reservations)
+            ORDER BY locker_num ASC`;
             if (locker.length === 0) {
                 res.status(404).json({ message: "not have any locker leave" });
             } else {
@@ -55,6 +56,25 @@ export class LockerController extends ControllerModule {
             }
         } catch (error) {
             res.status(500).json({ message: "cannot get locker" });
+        }
+    }
+
+    async getReserveLocker(req: Request, res: Response) {
+        try {
+            const user_id: number = parseInt(req.params.user_id);
+
+            const reserve: any[] = await this.prisma.$queryRaw`SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id
+            WHERE user_id = ${user_id}`
+            if (reserve.length === 0) {
+                res.status(404).json({ message: "not found reserve locker" });
+            } else {
+                res.status(200).json({
+                    message: "get reserve complete",
+                    reservation: reserve
+                });
+            }
+        } catch (error) {
+            res.status(500).json({ message: "cannot get reserve locker" });
         }
     }
 
