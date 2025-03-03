@@ -71,5 +71,5 @@ export class Server {
 
 const server = new Server();
 server.start({
-  apiPrefix: "/api",
+  apiPrefix: "/api55",
 });
