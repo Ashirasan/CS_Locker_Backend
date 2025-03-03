@@ -2,7 +2,7 @@ version: "3.0"
 services:
   # Backend
   node_backend:
-    image: registry.s-01.wutthiphon.space/kmutnb-backend-iot-mobile-dev-project:0.0.1
+    image: registry.s-01.wutthiphon.space/kmutnb-backend-iot-mobile-dev-project:d84d2d08c40c6308242e7d375462452d70812bff
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
