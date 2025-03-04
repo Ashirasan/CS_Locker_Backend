@@ -97,7 +97,7 @@ export class LockerController extends ControllerModule {
                 }
                 const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Funlock', message_toboard, {
                     headers: {
-                        "Authorization": "Device " + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
+                        "Authorization": "Device " + process.env.MQTT_CLIENT_ID + ":" + process.env.MQTT_TOKEN,
                     },
                 })
                 res.status(200).json({ message: "unlock complete" })
@@ -136,7 +136,7 @@ export class LockerController extends ControllerModule {
                     }
                     const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Funlock', message_toboard, {
                         headers: {
-                            "Authorization": "Device " + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
+                            "Authorization": "Device " + process.env.MQTT_CLIENT_ID + ":" + process.env.MQTT_TOKEN,
                         },
                     })
                     res.status(200).json({ message: "unlock complete" })
@@ -149,7 +149,7 @@ export class LockerController extends ControllerModule {
                     }
                     const response = await axios.put('https://api.netpie.io/v2/device/message?topic=locker%2Funlock', message_toboard, {
                         headers: {
-                            "Authorization": "Device " + process.env.mqtt_client_id + ":" + process.env.mqtt_token,
+                            "Authorization": "Device " + process.env.MQTT_CLIENT_ID + ":" + process.env.MQTT_TOKEN,
                         },
                     })
                     res.status(400).json({ message: "password are wrong" });
