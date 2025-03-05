@@ -4,7 +4,9 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-export interface AuthUserInformation {}
+export interface AuthUserInformation {
+  id: number;
+}
 
 declare global {
   namespace Express {
