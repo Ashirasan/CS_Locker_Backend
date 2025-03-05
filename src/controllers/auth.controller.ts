@@ -28,18 +28,21 @@ export class AuthController extends ControllerModule {
           VALUES (${email}, ${bcryptPassword}, ${firstname},${lastname},${ref},${otp},${0})`;
         const id: any[] = await this.prisma.$queryRaw`SELECT LAST_INSERT_ID() AS user_id`;
         const user_id: number = Number(id[0].user_id);
+        //send mail
+        await this.mailer.sendMail(email,"รหัส OTP สำหรับยืนยันตัวแอพลิเคชั่น LOCK LOCK","<h1> รหัส OTP ของคุณคือ "+otp+"</h1></br><p> Reference Code "+ ref + "</p>")
         res.status(200).json({
           message: "Need to verify otp",
           userId: user_id,
           refCode: ref,
         });
       } else {
-        console.log(check[0]);
+        // console.log(check[0]);
 
         if (check[0].verify_status == 1) {
           res.status(400).json({ message: "this email already used" });
         } else {
           const update: any[] = await this.prisma.$queryRaw`UPDATE users SET password = ${bcryptPassword} , firstname = ${firstname}, lastname = ${lastname}, ref = ${ref} , otp = ${otp} WHERE user_id = ${check[0].user_id}`
+          await this.mailer.sendMail(email,"รหัส OTP สำหรับยืนยันตัวแอพลิเคชั่น LOCK LOCK","<h1> รหัส OTP ของคุณคือ "+otp+"</h1></br><p> Reference Code "+ ref + "</p>")
           res.status(200).json({
             message: "Need to verify otp",
             userId: check[0].user_id,
@@ -74,6 +77,7 @@ export class AuthController extends ControllerModule {
             const ref: string = await makeid(6, "ref");
             const otp: string = await makeid(6, "otp");
             const updateotp = await this.prisma.$queryRaw`UPDATE users SET ref = ${ref}, otp = ${otp} WHERE user_id = ${checkemail[0].user_id}`;
+            await this.mailer.sendMail(email,"รหัส OTP สำหรับยืนยันตัวแอพลิเคชั่น LOCK LOCK","<h1> รหัส OTP ของคุณคือ "+otp+"</h1></br><p> Reference Code "+ ref + "</p>")
             res.status(200).json({
               message: "Need to verify otp",
               userId: checkemail[0].user_id,

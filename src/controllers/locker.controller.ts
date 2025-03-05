@@ -80,7 +80,7 @@ export class LockerController extends ControllerModule {
             const reserve: any[] = await this.prisma.$queryRaw`SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id
             WHERE user_id = ${user_id}`
             if (reserve.length === 0) {
-                res.status(404).json({ message: "not found reserve locker", data:[]});
+                res.status(200).json({ message: "not found reserve locker", data:[]});
             } else {
                 var result: any[] = [];
                 for await (const element of reserve) {
@@ -194,7 +194,7 @@ export class LockerController extends ControllerModule {
           const record: any[] = await this.prisma.$queryRaw`SELECT * FROM records JOIN lockers ON records.locker_id = lockers.locker_id
             WHERE user_id = ${user_id}`;
           if (record.length === 0) {
-            res.status(404).json({ message: "cannot find record",data:[] })
+            res.status(200).json({ message: "cannot find record",data:[] })
           } else {
             var result: any[] = [];
             for await (const element of record) {
