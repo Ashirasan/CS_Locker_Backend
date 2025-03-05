@@ -18,11 +18,9 @@ export class Server {
 
   constructor() {
     this.app = express();
-    if (process.env.BACKEND_PORT) {
-      this.port = Number(process.env.BACKEND_PORT);
-    } else {
-      this.port = null;
-    }
+    this.port = process.env.BACKEND_PORT
+      ? Number(process.env.BACKEND_PORT)
+      : null;
   }
 
   private loadMiddleware() {
