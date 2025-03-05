@@ -6,10 +6,9 @@ import axios from "axios";
 export class LockerController extends ControllerModule {
     async reservationLocker(req: Request, res: Response) {
         const locker_id: number = req.body.locker_id;
-        const user_id: number = req.body.user_id;
+        const user_id: number = Number(req.user?.id);
         const password = (Math.floor(100000 + Math.random() * 900000)).toString();
         const date: Date = new Date();
-
         try {
             const checklocker: any[] = await this.prisma.$queryRaw`SELECT rsv_id FROM reservations WHERE locker_id = ${locker_id}`;
             if (checklocker.length === 0) {
@@ -24,16 +23,19 @@ export class LockerController extends ControllerModule {
     }
 
     async cancelLocker(req: Request, res: Response) {
-        const rsv_id: number = parseInt(req.params.rsv_id)
-
+        const user_id:number = Number(req.user?.id);
+        const locker_id:number = req.body.locker_id;
         try {
+            
             const checkrsv: any[] = await this.prisma.$queryRaw`SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id
-            WHERE rsv_id = ${rsv_id}`;
+            WHERE reservations.user_id = ${user_id} AND reservations.locker_id = ${locker_id}`;
+            
+            
             if (checkrsv.length === 0) {
                 res.status(404).json({ message: "not found this reservations" });
             } else {
                 console.log(checkrsv[0]);
-                const qdelete: any[] = await this.prisma.$queryRaw`DELETE FROM reservations WHERE rsv_id = ${rsv_id}`;
+                const qdelete: any[] = await this.prisma.$queryRaw`DELETE FROM reservations WHERE user_id = ${user_id} AND locker_id = ${locker_id}`;
                 const date_end: Date = new Date();
 
                 const record: any[] = await this.prisma.$queryRaw`INSERT INTO records (date_start,date_end,user_id,locker_id)
@@ -104,10 +106,11 @@ export class LockerController extends ControllerModule {
     //unlock form app
     async unlockLockerApp(req: Request, res: Response) {
         try {
-            const rsv_id: number = parseInt(req.params.rsv_id);
+            const user_id: number = Number(req.user?.id);
+            const locker_id: number = req.body.locker_id;
 
             const checkrsv: any[] = await this.prisma.$queryRaw`SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id
-            WHERE rsv_id = ${rsv_id}`;
+            WHERE reservations.user_id = ${user_id} AND reservations.locker_id = ${locker_id}`;
             if (checkrsv.length === 0) {
                 res.status(404).json({ message: "reservation not found" });
             } else {
@@ -179,6 +182,34 @@ export class LockerController extends ControllerModule {
 
         } catch (error) {
             res.status(500).json({ message: "cannot unlock locker" });
+        }
+    }
+
+    async getRecord(req: Request, res: Response) {
+        try {
+          const user_id: number = Number(req.user?.id);
+    
+          const record: any[] = await this.prisma.$queryRaw`SELECT * FROM records JOIN lockers ON records.locker_id = lockers.locker_id
+            WHERE user_id = ${user_id}`;
+          if (record.length === 0) {
+            res.status(404).json({ message: "cannot find record" })
+          } else {
+            var result: any[] = [];
+            for await (const element of record) {
+              // console.log(element);
+              result.push({
+                lockerNumber: element.locker_num,
+                lockerID: element.locker_id,
+                isInUse: false,
+                passCode: "",
+                reserveDate: element.date_start,
+                endReserveDate: element.date_end,
+              })
+            }
+            res.status(200).json(result);
+          }
+        } catch (error) {
+          res.status(500).json({ message: "cannot get record" })
         }
     }
 }
