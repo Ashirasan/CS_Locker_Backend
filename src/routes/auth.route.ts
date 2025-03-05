@@ -21,11 +21,11 @@ export class AuthRouteModule extends RouteModule {
       this.controller.verificationOTP(req,res)
     );
 
-    this.router.post("/update-user",(req,res) =>
+    this.router.post("/update-user", this.middleware.verifyAuth(), (req,res) =>
       this.controller.updateUser(req,res)
     );
 
-    this.router.post("/update-password",(req,res) =>
+    this.router.post("/update-password", this.middleware.verifyAuth(), (req,res) =>
       this.controller.updatePassword(req,res)
     );
   }

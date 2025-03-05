@@ -35,16 +35,16 @@ export class AuthController extends ControllerModule {
         });
       } else {
         console.log(check[0]);
-        
-        if(check[0].verify_status == 1){
+
+        if (check[0].verify_status == 1) {
           res.status(400).json({ message: "this email already used" });
-        }else{
-          const update : any[] = await this.prisma.$queryRaw`UPDATE users SET password = ${bcryptPassword} , firstname = ${firstname}, lastname = ${lastname}, ref = ${ref} , otp = ${otp} WHERE user_id = ${check[0].user_id}`
-        res.status(200).json({
-          message: "Need to verify otp",
-          userId: check[0].user_id,
-          refCode: ref,
-        });
+        } else {
+          const update: any[] = await this.prisma.$queryRaw`UPDATE users SET password = ${bcryptPassword} , firstname = ${firstname}, lastname = ${lastname}, ref = ${ref} , otp = ${otp} WHERE user_id = ${check[0].user_id}`
+          res.status(200).json({
+            message: "Need to verify otp",
+            userId: check[0].user_id,
+            refCode: ref,
+          });
         }
       }
     } catch (error) {
@@ -63,23 +63,24 @@ export class AuthController extends ControllerModule {
       if (checkemail.length === 0) {
         res.status(404).json({ message: "Email not found" });
       } else {
-        
+
         const checkpassword: boolean = await bcrypt.compare(
           password,
           checkemail[0].password
         );
 
         if (checkpassword) {
-          if(checkemail[0].verify_status === 0){
+          if (checkemail[0].verify_status === 0) {
+            const ref: string = await makeid(6, "ref");
             const otp: string = await makeid(6, "otp");
-            const updateotp = await this.prisma.$queryRaw`UPDATE users SET otp = ${otp} WHERE user_id = ${checkemail[0].user_id}`;
+            const updateotp = await this.prisma.$queryRaw`UPDATE users SET ref = ${ref}, otp = ${otp} WHERE user_id = ${checkemail[0].user_id}`;
             res.status(200).json({
               message: "Need to verify otp",
               userId: checkemail[0].user_id,
-              refCode: checkemail[0].ref,
-              verify_status:false
+              refCode: ref,
+              verify_status: false
             });
-          }else{
+          } else {
             const token = jwt.sign(
               { id: checkemail[0].user_id },
               String(process.env.SECRET_KEY)
@@ -139,47 +140,47 @@ export class AuthController extends ControllerModule {
     }
   }
 
-  async updateUser(req:Request,res:Response){
-    try{
-      const user_id :number = req.body.user_id;
-      const firstname :string = req.body.firstname;
-      const lastname :string = req.body.lastname;
+  async updateUser(req: Request, res: Response) {
+    try {
+      const user_id: number = req.body.user_id;
+      const firstname: string = req.body.firstname;
+      const lastname: string = req.body.lastname;
 
       const update: any[] = await this.prisma.$queryRaw`UPDATE users SET firstname = ${firstname}, lastname = ${lastname} WHERE user_id = ${user_id}`;
-      res.status(200).json({ message: "update user complete"});
-    }catch(error){
-      res.status(500).json({ message: "cannot update user"});
+      res.status(200).json({ message: "update user complete" });
+    } catch (error) {
+      res.status(500).json({ message: "cannot update user" });
     }
   }
 
-  async updatePassword(req:Request,res:Response){
-    try{
-      const user_id :number = req.body.user_id;
-      const oldpassword :string = req.body.oldpassword;
-      const newpassword :string = req.body.newpassword;
+  async updatePassword(req: Request, res: Response) {
+    try {
+      const user_id: number = req.body.user_id;
+      const oldpassword: string = req.body.oldpassword;
+      const newpassword: string = req.body.newpassword;
 
-      const finduser : any[] = await this.prisma.$queryRaw`SELECT password FROM users WHERE user_id = ${user_id}`;
-      if(finduser.length === 0){
-        res.status(404).json({ message: "user not found"});
-      }else{
+      const finduser: any[] = await this.prisma.$queryRaw`SELECT password FROM users WHERE user_id = ${user_id}`;
+      if (finduser.length === 0) {
+        res.status(404).json({ message: "user not found" });
+      } else {
         const checkpassword: boolean = await bcrypt.compare(
           oldpassword,
           finduser[0].password
         );
-        if(checkpassword){
+        if (checkpassword) {
           let bcryptPassword: string = await bcrypt.hash(
             newpassword,
             Number(process.env.BCRYPT_ROUNDS)
           );
           const update: any[] = await this.prisma.$queryRaw`UPDATE users SET password = ${bcryptPassword} WHERE user_id = ${user_id}`;
-          res.status(200).json({ message: "update new password complete"});
-        }else{
-          res.status(400).json({ message: "old password not match"});
+          res.status(200).json({ message: "update new password complete" });
+        } else {
+          res.status(400).json({ message: "old password not match" });
         }
       }
-      
-    }catch(error){
-      res.status(500).json({ message: "cannot update password"});
+
+    } catch (error) {
+      res.status(500).json({ message: "cannot update password" });
     }
   }
 }
