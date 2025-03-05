@@ -142,7 +142,7 @@ export class AuthController extends ControllerModule {
 
   async updateUser(req: Request, res: Response) {
     try {
-      const user_id: number = req.body.user_id;
+      const user_id: number = Number(req.user?.id);
       const firstname: string = req.body.firstname;
       const lastname: string = req.body.lastname;
 
@@ -155,7 +155,7 @@ export class AuthController extends ControllerModule {
 
   async updatePassword(req: Request, res: Response) {
     try {
-      const user_id: number = req.body.user_id;
+      const user_id: number = Number(req.user?.id);
       const oldpassword: string = req.body.oldpassword;
       const newpassword: string = req.body.newpassword;
 
