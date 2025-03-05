@@ -21,7 +21,7 @@ export class AuthController extends ControllerModule {
 
 
       const check: any[] = await this.prisma
-        .$queryRaw`SELECT user_id,email FROM users WHERE email = ${email}`;
+        .$queryRaw`SELECT * FROM users WHERE email = ${email}`;
       if (check.length === 0) {
         const result: any[] = await this.prisma
           .$queryRaw`INSERT INTO users (users.email,users.password,users.firstname,users.lastname,users.ref,users.otp,users.verify_status) 
@@ -34,12 +34,18 @@ export class AuthController extends ControllerModule {
           refCode: ref,
         });
       } else {
-        const update : any[] = await this.prisma.$queryRaw`UPDATE users SET password = ${bcryptPassword} , firstname = ${firstname}, lastname = ${lastname}, ref = ${ref} , otp = ${otp} WHERE user_id = ${check[0].user_id}`
+        console.log(check[0]);
+        
+        if(check[0].verify_status == 1){
+          res.status(400).json({ message: "this email already used" });
+        }else{
+          const update : any[] = await this.prisma.$queryRaw`UPDATE users SET password = ${bcryptPassword} , firstname = ${firstname}, lastname = ${lastname}, ref = ${ref} , otp = ${otp} WHERE user_id = ${check[0].user_id}`
         res.status(200).json({
           message: "Need to verify otp",
           userId: check[0].user_id,
           refCode: ref,
         });
+        }
       }
     } catch (error) {
       res.status(500).json({ message: "cannot create user" });
@@ -71,6 +77,7 @@ export class AuthController extends ControllerModule {
               message: "Need to verify otp",
               userId: checkemail[0].user_id,
               refCode: checkemail[0].ref,
+              verify_status:false
             });
           }else{
             const token = jwt.sign(
@@ -110,7 +117,7 @@ export class AuthController extends ControllerModule {
         res.status(404).json({ message: "user not found" });
       } else {
         if (finduser[0].otp == otp) {
-          const updatestatus = await this.prisma.$queryRaw`UPDATE users SET verify_status = ${1} WHERE user_id = ${user_id}`
+          const updatestatus = await this.prisma.$queryRaw`UPDATE users SET verify_status = ${1},ref = ${null}, otp = ${null} WHERE user_id = ${user_id}`
           const token = jwt.sign(
             { id: finduser[0].user_id },
             String(process.env.SECRET_KEY)
@@ -124,7 +131,7 @@ export class AuthController extends ControllerModule {
             token: token,
           });
         } else {
-          res.status(400).json({ message: "verification not complete" });
+          res.status(400).json({ message: "verification fail" });
         }
       }
     } catch (error) {
@@ -184,10 +191,10 @@ function makeid(length: number, type: string) {
   var characters: string = "";
   if (type == "ref") {
     characters =
-      "abcdefghijklmnopqrstuvwxyz0123456789";
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   } else if (type == "otp") {
     characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      "0123456789";
   }
   var charactersLength = characters.length;
   for (var i = 0; i < length; i++) {
