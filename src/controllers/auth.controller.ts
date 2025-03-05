@@ -24,8 +24,8 @@ export class AuthController extends ControllerModule {
         .$queryRaw`SELECT user_id,email FROM users WHERE email = ${email}`;
       if (check.length === 0) {
         const result: any[] = await this.prisma
-          .$queryRaw`INSERT INTO users (users.email,users.password,users.firstname,users.lastname,users.ref,users.otp) 
-          VALUES (${email}, ${bcryptPassword}, ${firstname},${lastname},${ref},${otp})`;
+          .$queryRaw`INSERT INTO users (users.email,users.password,users.firstname,users.lastname,users.ref,users.otp,users.verify_status) 
+          VALUES (${email}, ${bcryptPassword}, ${firstname},${lastname},${ref},${otp},${0})`;
         const id: any[] = await this.prisma.$queryRaw`SELECT LAST_INSERT_ID() AS user_id`;
         const user_id: number = Number(id[0].user_id);
         res.status(200).json({
@@ -57,24 +57,35 @@ export class AuthController extends ControllerModule {
       if (checkemail.length === 0) {
         res.status(404).json({ message: "Email not found" });
       } else {
+        
         const checkpassword: boolean = await bcrypt.compare(
           password,
           checkemail[0].password
         );
 
         if (checkpassword) {
-          const token = jwt.sign(
-            { id: checkemail[0].user_id },
-            String(process.env.SECRET_KEY)
-          );
-          res.status(200).json({
-            message: "login complete",
-            user_id: checkemail[0].user_id,
-            email: checkemail[0].email,
-            firstname: checkemail[0].firstname,
-            lastname: checkemail[0].lastname,
-            token: token,
-          });
+          if(checkemail[0].verify_status === 0){
+            const otp: string = await makeid(6, "otp");
+            const updateotp = await this.prisma.$queryRaw`UPDATE users SET otp = ${otp} WHERE user_id = ${checkemail[0].user_id}`;
+            res.status(200).json({
+              message: "Need to verify otp",
+              userId: checkemail[0].user_id,
+              refCode: checkemail[0].ref,
+            });
+          }else{
+            const token = jwt.sign(
+              { id: checkemail[0].user_id },
+              String(process.env.SECRET_KEY)
+            );
+            res.status(200).json({
+              message: "login complete",
+              user_id: checkemail[0].user_id,
+              email: checkemail[0].email,
+              firstname: checkemail[0].firstname,
+              lastname: checkemail[0].lastname,
+              token: token,
+            });
+          }
         } else {
           res.status(400).json({ message: "Email or Password is wrong" });
         }
@@ -99,6 +110,7 @@ export class AuthController extends ControllerModule {
         res.status(404).json({ message: "user not found" });
       } else {
         if (finduser[0].otp == otp) {
+          const updatestatus = await this.prisma.$queryRaw`UPDATE users SET verify_status = ${1} WHERE user_id = ${user_id}`
           const token = jwt.sign(
             { id: finduser[0].user_id },
             String(process.env.SECRET_KEY)
