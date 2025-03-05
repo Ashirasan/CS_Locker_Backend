@@ -52,7 +52,19 @@ export class LockerController extends ControllerModule {
             if (locker.length === 0) {
                 res.status(404).json({ message: "not have any locker leave" });
             } else {
-                res.status(200).json(locker);
+                var result: any[] = [];
+                for await (const element of locker) {
+                    // console.log(element);
+                    result.push({
+                        lockerNumber: element.locker_num,
+                        lockerID: element.locker_id,
+                        isInUse: false,
+                        passCode: "",
+                        reserveDate: null,
+                        endReserveDate: null,
+                    })
+                }
+                res.status(200).json(result);
             }
         } catch (error) {
             res.status(500).json({ message: "cannot get locker" });
@@ -68,10 +80,19 @@ export class LockerController extends ControllerModule {
             if (reserve.length === 0) {
                 res.status(404).json({ message: "not found reserve locker" });
             } else {
-                res.status(200).json({
-                    message: "get reserve complete",
-                    reservation: reserve
-                });
+                var result: any[] = [];
+                for await (const element of reserve) {
+                    // console.log(element);
+                    result.push({
+                        lockerNumber: element.locker_num,
+                        lockerID: element.locker_id,
+                        isInUse: true,
+                        passCode: element.password,
+                        reserveDate: element.date,
+                        endReserveDate: null,
+                    })
+                }
+                res.status(200).json(result);
             }
         } catch (error) {
             res.status(500).json({ message: "cannot get reserve locker" });

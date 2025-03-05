@@ -16,5 +16,17 @@ export class AuthRouteModule extends RouteModule {
     this.router.get("/protected", this.middleware.verifyAuth(), (req, res) =>
       this.controller.protected(req, res)
     );
+
+    this.router.post("/verify-otp",(req,res) =>
+      this.controller.verificationOTP(req,res)
+    );
+
+    this.router.post("/update-user",(req,res) =>
+      this.controller.updateUser(req,res)
+    );
+
+    this.router.post("/update-password",(req,res) =>
+      this.controller.updatePassword(req,res)
+    );
   }
 }

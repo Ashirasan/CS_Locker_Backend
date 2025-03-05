@@ -11,11 +11,19 @@ export class RecordController extends ControllerModule {
             if (record.length === 0) {
                 res.status(404).json({ message: "cannot find record" })
             } else {
-                console.log(record);
-                res.status(200).json({
-                    message: "get record complete",
-                    record: record
-                });
+                var result: any[] = [];
+                for await (const element of record) {
+                    // console.log(element);
+                    result.push({
+                        lockerNumber: element.locker_num,
+                        lockerID: element.locker_id,
+                        isInUse: false,
+                        passCode: "",
+                        reserveDate: element.date_start,
+                        endReserveDate: element.date_end,
+                    })
+                }
+                res.status(200).json(result);
             }
         } catch (error) {
             res.status(500).json({ message: "cannot get record" })
