@@ -13,6 +13,7 @@ export class LockerController extends ControllerModule {
             const checklocker: any[] = await this.prisma.$queryRaw`SELECT rsv_id FROM reservations WHERE locker_id = ${locker_id}`;
             if (checklocker.length === 0) {
                 const reservation: any[] = await this.prisma.$queryRaw`INSERT INTO reservations (locker_id,user_id,password,date) VALUES(${locker_id},${user_id},${password},${date})`;
+                const addcount: any[] = await this.prisma.$queryRaw`update lockers SET locker_count = locker_count + ${1} WHERE locker_id = ${locker_id}`
                 res.status(200).json({ message: "reservation complete" });
             } else {
                 res.status(400).json({ message: "this locker is already reserved" });
