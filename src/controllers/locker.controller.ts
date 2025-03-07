@@ -76,7 +76,7 @@ export class LockerController extends ControllerModule {
 
     async getReserveLocker(req: Request, res: Response) {
         try {
-            const user_id: number = parseInt(req.params.user_id);
+            const user_id: number = Number(req.user?.id);
 
             const reserve: any[] = await this.prisma.$queryRaw`SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id
             WHERE user_id = ${user_id}`
