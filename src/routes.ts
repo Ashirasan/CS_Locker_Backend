@@ -1,11 +1,12 @@
 import { AuthRouteModule } from "./routes/auth.route";
 import { LockerRouteModule } from "./routes/locker.route";
-
+import { DashboardRouteModule } from "./routes/dashboard.route";
 // import { HomeRouteModule } from "./routes/home.route";
 
 const routes = [
   { prefix: "/auth", routes: AuthRouteModule },
   { prefix: "/locker", routes: LockerRouteModule },
+  { prefix: "/dashboard", routes: DashboardRouteModule }
   //   { prefix: "/home", routes: HomeRouteModule },
 ];
 
