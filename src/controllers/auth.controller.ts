@@ -147,8 +147,20 @@ export class AuthController extends ControllerModule {
       const firstname: string = req.body.firstname;
       const lastname: string = req.body.lastname;
 
+      const userdata: any[] = await this.prisma.$queryRaw`SELECT * FROM users WHERE user_id = ${user_id}`
       const update: any[] = await this.prisma.$queryRaw`UPDATE users SET firstname = ${firstname}, lastname = ${lastname} WHERE user_id = ${user_id}`;
-      res.status(200).json({ message: "update user complete" });
+      const token = jwt.sign(
+        { id: userdata[0].user_id },
+        String(process.env.SECRET_KEY)
+      );
+      res.status(200).json({
+        message: "update user complete",
+        user_id: userdata[0].user_id,
+        email: userdata[0].email,
+        firstname: firstname,
+        lastname: lastname,
+        token: token,
+      });
     } catch (error) {
       res.status(500).json({ message: "cannot update user" });
     }
