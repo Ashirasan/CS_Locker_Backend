@@ -20,6 +20,12 @@ services:
       - MQTT_CLIENT_ID
       - MQTT_TOKEN
       - MQTT_SECERT
+      - SMTP_HOST
+      - SMTP_PORT
+      - SMTP_USER
+      - SMTP_PASS
+      - SMTP_FROM
+      - SMTP_SECUR
 
 networks:
   network:
