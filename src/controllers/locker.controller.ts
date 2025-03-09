@@ -35,7 +35,6 @@ export class LockerController extends ControllerModule {
             if (checkrsv.length === 0) {
                 res.status(404).json({ message: "not found this reservations" });
             } else {
-                console.log(checkrsv[0]);
                 const qdelete: any[] = await this.prisma.$queryRaw`DELETE FROM reservations WHERE user_id = ${user_id} AND locker_id = ${locker_id}`;
                 const date_end: Date = new Date();
 
@@ -57,7 +56,6 @@ export class LockerController extends ControllerModule {
             } else {
                 var result: any[] = [];
                 for await (const element of locker) {
-                    // console.log(element);
                     result.push({
                         lockerNumber: element.locker_num,
                         lockerID: element.locker_id,
@@ -85,7 +83,6 @@ export class LockerController extends ControllerModule {
             } else {
                 var result: any[] = [];
                 for await (const element of reserve) {
-                    // console.log(element);
                     result.push({
                         lockerNumber: element.locker_num,
                         lockerID: element.locker_id,
@@ -145,14 +142,11 @@ export class LockerController extends ControllerModule {
                 else if (countstar === 1) locker_num += input[i];
                 else if (countstar === 2) password += input[i];
             }
-            console.log(locker_num);
-            console.log(password);
             const checkrsv: any[] = await this.prisma.$queryRaw`SELECT * FROM reservations JOIN lockers ON reservations.locker_id = lockers.locker_id
             WHERE lockers.locker_num = ${locker_num}`
             if (checkrsv.length === 0) {
                 res.status(404).json({ message: "locker number " + locker_num + " not reserve" });
             } else {
-                // console.log(checkrsv[0]);
                 if (password == checkrsv[0].password) {
                     // can unlock
                     const message_toboard = {
@@ -197,7 +191,6 @@ export class LockerController extends ControllerModule {
           } else {
             var result: any[] = [];
             for await (const element of record) {
-              // console.log(element);
               result.push({
                 lockerNumber: element.locker_num,
                 lockerID: element.locker_id,
