@@ -9,16 +9,16 @@ export class DashboardController extends ControllerModule {
             const user_count  : any[] = await this.prisma.$queryRaw`SELECT COUNT(user_id) AS count FROM users`;
 
             // locker
-            const locker_notuse_count: any[] = await this.prisma.$queryRaw`SELECT COUNT(locker_id) AS count FROM lockers WHERE lockers.locker_id NOT IN (SELECT locker_id FROM reservations)`
+            const locker_notuse_count: any[] = await this.prisma.$queryRaw`SELECT * FROM lockers WHERE lockers.locker_id NOT IN (SELECT locker_id FROM reservations)`
             
             // count per locker
             
-            const lockerlist : any[] = await this.prisma.$queryRaw`SELECT * FROM lockers `;
+            const lockerlist : any[] = await this.prisma.$queryRaw`SELECT * FROM lockers ORDER BY locker_num ASC`;
             
             res.status(200).json({
                 user_count:Number(user_count[0].count),
-                locker_notuse_count:Number(locker_notuse_count[0].count),
-                lockerlist:lockerlist
+                locker_notuse_count:locker_notuse_count,
+                lockerlist:lockerlist,
             })
             
 

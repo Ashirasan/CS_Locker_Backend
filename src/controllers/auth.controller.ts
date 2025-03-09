@@ -36,8 +36,6 @@ export class AuthController extends ControllerModule {
           refCode: ref,
         });
       } else {
-        // console.log(check[0]);
-
         if (check[0].verify_status == 1) {
           res.status(400).json({ message: "this email already used" });
         } else {
@@ -52,7 +50,6 @@ export class AuthController extends ControllerModule {
       }
     } catch (error) {
       res.status(500).json({ message: "cannot create user" });
-      // res.status(500).json({message:error});
     }
   }
 
